@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Medicine Cabinet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Medicines">
+<meta name="theme-color" content="#F4F6F2">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C2A36; --ink-2:#4A5763; --muted:#6F7780; --paper:#F4F6F2; --card:#FFFFFF;
+  --line:#DCE1DA; --turmeric:#D99A1E; --turmeric-soft:#FBF1DC;
+  --ok:#2E7A4E; --ok-soft:#E3F1E8; --soon:#A8670A; --soon-soft:#FCEFD8;
+  --bad:#B23A2E; --bad-soft:#F8E1DE; --gone:#6F7780; --gone-soft:#ECEEEC; --info:#2D5F8A; --info-soft:#E1ECF5;
+  --font:"Atkinson Hyperlegible", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.45;-webkit-text-size-adjust:100%}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--turmeric);outline-offset:2px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+
+header.top{padding:calc(14px + env(safe-area-inset-top,0px)) 0 6px}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:700;font-size:17px;color:var(--ink-2)}
+.iconbtn{background:none;border:0;padding:8px;border-radius:10px;color:var(--ink-2);font-size:15px}
+
+/* Find view */
+h1.ask{font-size:30px;line-height:1.15;margin:10px 0 12px;font-weight:700;letter-spacing:-.01em}
+.search{position:relative}
+.search input{width:100%;padding:16px 48px 16px 16px;font-size:20px;border:2px solid var(--ink);border-radius:14px;background:var(--card)}
+.search input::placeholder{color:#9AA2A8;font-size:18px}
+.search .clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:22px;padding:8px 12px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:15px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+.cat-head{margin:22px 0 8px}
+.cat-head h2{font-size:22px;margin:0}
+.cat-head .count{color:var(--muted);font-size:15px;margin-top:2px}
+.tip{border-left:4px solid var(--turmeric);background:var(--turmeric-soft);padding:10px 12px;border-radius:0 10px 10px 0;font-size:15px;margin:8px 0 10px}
+.section-label{font-size:15px;color:var(--muted);margin:16px 0 6px}
+.empty{color:var(--muted);padding:22px 4px;font-size:16px}
+
+/* Medicine card */
+.med{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 10px}
+.med.dim{background:#FAFAF9}
+.med.dim .mname,.med.dim .mcontains,.med.dim .muse{color:var(--muted)}
+.mrow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.mname{font-size:19px;font-weight:700;line-height:1.2}
+.mcontains{color:var(--ink-2);font-size:15px;margin-top:2px}
+.muse{margin-top:8px;font-size:16px}
+.mnote{margin-top:8px;font-size:14px;color:var(--bad)}
+.loc{display:inline-block;margin-top:8px;font-size:14px;font-weight:700;color:var(--ink);background:var(--turmeric-soft);border:1px solid #EFD9A8;border-radius:8px;padding:3px 9px}
+.locchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.locchips .chip{padding:6px 12px;font-size:14px}
+.seg{display:flex;background:var(--gone-soft);border-radius:10px;padding:3px;margin-top:10px}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:8px;font-weight:700;font-size:15px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.mfoot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px;flex-wrap:wrap}
+.exp{font-size:14px;color:var(--muted)}
+.badge{flex:none;font-size:13px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-soon{background:var(--soon-soft);color:var(--soon)}
+.b-bad{background:var(--bad-soft);color:var(--bad)}
+.b-gone{background:var(--gone-soft);color:var(--gone)}
+.b-info{background:var(--info-soft);color:var(--info)}
+
+/* blister strip: the one bold element */
+.strip{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.foil{display:inline-grid;grid-template-columns:repeat(5,11px);grid-auto-rows:11px;gap:3px;padding:4px 5px;border-radius:6px;background:linear-gradient(135deg,#E9ECEE,#CDD3D7);border:1px solid #BFC6CB}
+.foil i{display:block;border-radius:50%;background:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.12)}
+.foil i.full{background:var(--turmeric);box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.foil.none i{background:#F3F4F5;box-shadow:inset 0 1px 1px rgba(0,0,0,.18)}
+
+/* All + shopping */
+.list-head{display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px}
+.list-head h1{font-size:26px;margin:0}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:16px}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-accent{background:var(--turmeric);color:var(--ink)}
+.btn-quiet{background:var(--card);border:1.5px solid var(--line)}
+.btn-danger{background:none;color:var(--bad);border:1.5px solid var(--bad-soft)}
+.group-title{font-size:18px;font-weight:700;margin:22px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.row .rn{font-weight:700}
+.row .rs{font-size:14px;color:var(--muted)}
+.filter{display:flex;gap:8px;overflow-x:auto;margin:10px -16px 0;padding:0 16px;scrollbar-width:none}
+
+/* bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav.tabs .wrap{display:flex}
+nav.tabs button{flex:1;border:0;background:none;padding:12px 4px 14px;font-size:15px;color:var(--muted);font-weight:700;border-top:3px solid transparent}
+nav.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--turmeric)}
+nav.tabs .n{display:inline-block;min-width:22px;padding:0 6px;border-radius:999px;background:var(--bad);color:#fff;font-size:12px;margin-left:4px;line-height:20px}
+
+/* editor sheet */
+.overlay{position:fixed;inset:0;background:rgba(28,42,54,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.overlay.open{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));animation:up .18s ease-out}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 12px;font-size:22px}
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:700;font-size:15px;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);font-size:17px}
+.field textarea{min-height:76px;resize:vertical}
+.hint{font-size:13px;color:var(--muted);margin-top:4px}
+.qty{display:flex;gap:8px;align-items:center}
+.qty input{text-align:center;font-size:20px;font-weight:700;max-width:90px}
+.qty .step{width:52px;height:50px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);font-size:24px;font-weight:700}
+.actions{display:flex;gap:10px;margin-top:6px}
+.actions .btn{flex:1}
+
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.loading{padding:40px 0;text-align:center;color:var(--muted)}
+/* PIN screen */
+.pin{position:fixed;inset:0;background:var(--paper);z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.pin h1{font-size:26px;margin:0 0 6px}
+.pin .sub{color:var(--muted);margin:0 0 22px;text-align:center;min-height:1.45em}
+.pin .sub.err{color:var(--bad);font-weight:700}
+.dots{display:flex;gap:16px;margin-bottom:28px}
+.dots span{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink);background:transparent}
+.dots span.on{background:var(--turmeric);border-color:var(--turmeric)}
+.dots.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+@media (prefers-reduced-motion:reduce){.dots.shake{animation:none}}
+.keys{display:grid;grid-template-columns:repeat(3,76px);gap:14px}
+.keys button{height:76px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);font-size:28px;font-weight:700}
+.keys button:active{background:var(--turmeric-soft)}
+.keys .ghost{border:0;background:none;font-size:16px;color:var(--ink-2)}
+.remember{margin-top:22px;display:flex;align-items:center;gap:10px;font-size:16px}
+.remember input{width:22px;height:22px;accent-color:var(--ink)}
+.aifill{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.aifill .btn{padding:10px 14px;font-size:15px;white-space:nowrap;flex:none}
+.aimsg{font-size:14px;color:var(--ink-2);flex-basis:100%}
+.aimsg:empty{display:none}
+.photos{flex-basis:100%;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.photos img{width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.photos:empty{display:none}
+.thumb{position:relative;display:inline-block}
+.thumb button{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:14px;line-height:24px;padding:0}
+.field label.collect{flex-basis:100%;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:400;color:var(--ink-2);margin:0}
+.collect input{width:20px;height:20px;accent-color:var(--ink);flex:none}
+.aimsg.err{color:var(--bad)}
+.filled{animation:filled 1.6s ease-out}
+@keyframes filled{0%{background:var(--turmeric-soft);border-color:var(--turmeric)}100%{background:var(--card)}}
+@media (prefers-reduced-motion:reduce){.filled{animation:none;border-color:var(--turmeric)}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <span class="brand">Medicine Cabinet</span>
+  <span><button class="iconbtn" id="refresh">Refresh</button><button class="iconbtn" id="lockBtn">Lock</button></span>
+</div></header>
+
+<main class="wrap">
+  <div id="loading" class="loading">Loading medicines…</div>
+
+  <section id="view-find" hidden>
+    <h1 class="ask">What's wrong?</h1>
+    <div class="search">
+      <input id="q" type="text" placeholder="Symptom, medicine, ingredient" autocomplete="off" enterkeyhint="search" aria-label="Symptom, medicine or ingredient">
+      <button class="clear" id="clearQ" aria-label="Clear search" hidden>×</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="results"></div>
+  </section>
+
+  <section id="view-all" hidden>
+    <div class="list-head"><h1>All medicines</h1><button class="btn btn-accent" id="addBtn">Add medicine</button></div>
+    <div class="seg" id="groupBy"><button aria-pressed="true" data-g="cat">By category</button><button aria-pressed="false" data-g="loc">By bag</button></div>
+    <div class="filter" id="allFilter" style="margin-top:10px"></div>
+    <div id="allList"></div>
+  </section>
+
+  <section id="view-shop" hidden>
+    <div class="list-head"><h1>Shopping list</h1><button class="btn btn-primary" id="shareBtn">Share list</button></div>
+    <p class="hint" style="margin-top:6px">Everything used up, expired, expiring in the next 6 months, or missing an expiry date.</p>
+    <div id="shopList"></div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sections"><div class="wrap">
+  <button data-view="find" aria-current="page">Find</button>
+  <button data-view="all">All</button>
+  <button data-view="shop">Shopping<span class="n" id="shopCount" hidden></span></button>
+</div></nav>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+  <div class="sheet">
+    <h2 id="edTitle">Edit medicine</h2>
+    <div class="field"><label for="f-name">Name</label><input id="f-name" autocomplete="off" placeholder="e.g. Pan 40">
+      <div class="aifill"><button class="btn btn-accent" type="button" id="aiBtn">Fill in for me</button><button class="btn btn-quiet" type="button" id="camBtn">Scan strip</button><button class="btn btn-quiet" type="button" id="moreBtn" hidden>Add 2nd photo</button><button class="btn btn-primary" type="button" id="readBtn" hidden>Read photos</button>
+        <input type="file" id="camInput" accept="image/*" multiple hidden>
+        <div class="photos" id="photoTray"></div>
+        <label class="collect"><input type="checkbox" id="collectMode"> Take all photos first, then read them together</label>
+        <span class="aimsg" id="aiMsg" role="status"></span></div>
+      <div class="hint">Take a photo, or pick up to 3 from your gallery at once (front, back, expiry).</div></div>
+    <div class="field"><label for="f-qty">How many are left</label>
+      <div class="qty">
+        <button class="step" type="button" id="qMinus" aria-label="One less">−</button>
+        <input id="f-qty" inputmode="numeric" pattern="[0-9]*">
+        <button class="step" type="button" id="qPlus" aria-label="One more">+</button>
+        <button class="btn btn-quiet" type="button" id="usedUp" style="margin-left:auto">Used up</button>
+      </div>
+    </div>
+    <div class="field"><label for="f-exp">Expiry month</label><input id="f-exp" type="month" placeholder="2027-06"><div class="hint">As printed on the strip, e.g. 06/2027.</div></div>
+    <div class="field"><label for="f-loc">Where is it kept? <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="f-loc" autocomplete="off" placeholder="e.g. Blue bag, Travel pouch, Kitchen drawer"><div class="locchips" id="locChips"></div></div>
+    <div class="field"><label for="f-cat">Category</label><select id="f-cat"></select></div>
+    <div class="field"><label for="f-contains">Contains</label><input id="f-contains" autocomplete="off"></div>
+    <div class="field"><label for="f-use">Used for / Mom's instructions</label><textarea id="f-use" placeholder="e.g. 1 tablet twice a day after food, 3 days"></textarea></div>
+    <div class="field"><label for="f-notes">Notes & cautions</label><textarea id="f-notes"></textarea></div>
+    <div class="actions">
+      <button class="btn btn-quiet" type="button" id="edCancel">Cancel</button>
+      <button class="btn btn-primary" type="button" id="edSave">Save changes</button>
+    </div>
+    <div class="actions" style="margin-top:14px"><button class="btn btn-danger" type="button" id="edDelete">Delete medicine</button></div>
+  </div>
+</div>
+
+<div class="pin" id="pinScreen" hidden>
+  <h1>Medicine Cabinet</h1>
+  <p class="sub" id="pinMsg">Enter the family PIN</p>
+  <div class="dots" id="pinDots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div class="keys" id="keys">
+    <button>1</button><button>2</button><button>3</button>
+    <button>4</button><button>5</button><button>6</button>
+    <button>7</button><button>8</button><button>9</button>
+    <span></span><button>0</button><button class="ghost" data-del aria-label="Delete last digit">Delete</button>
+  </div>
+  <label class="remember"><input type="checkbox" id="rememberPin" checked> Remember on this phone</label>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+ * ONLY FOR THE GITHUB VERSION: paste your Apps Script web app
+ * link (the one ending in /exec) between the quotes below.
+ * (Inside Apps Script this line is ignored.)
+ * ============================================================ */
+const API_URL = "PASTE_YOUR_EXEC_LINK_HERE";
+
+/* ---------------- Knowledge: categories, tips, symptom words ---------------- */
+const CATEGORIES = [
+  "Fever & Pain","Muscle Pain & Spasm","Cold, Cough & Allergy","Sore Throat","Acidity & Gas",
+  "Nausea & Vomiting","Diarrhea & Stomach Infection","Stomach Cramps & Constipation",
+  "Antibiotics (Respiratory/General)","Urinary Infection (UTI)","Vaginal Infection",
+  "Eye & Ear Drops","Emergency / Special","Skin & First Aid","Regular Meds & Supplements","Other"
+];
+const TIPS = {
+  "Fever & Pain":"Only one painkiller at a time. Many of these contain paracetamol, so don't combine them. Take after food.",
+  "Muscle Pain & Spasm":"These already contain a painkiller. Don't add another one.",
+  "Cold, Cough & Allergy":"Montek LC and Montas L cause drowsiness. Only one antihistamine at a time. Sinarest contains paracetamol.",
+  "Sore Throat":"If it's severe or comes with high fever, ask Mom about an antibiotic.",
+  "Acidity & Gas":"One acid reducer at a time.",
+  "Nausea & Vomiting":"Sip ORS (Electrol) to stay hydrated.",
+  "Diarrhea & Stomach Infection":"ORS first. Antibiotic only if Mom says so.",
+  "Stomach Cramps & Constipation":"The Dicyclomine combo contains paracetamol.",
+  "Antibiotics (Respiratory/General)":"Only on Mom's advice. Finish the full course. Never take two with the same ingredient.",
+  "Urinary Infection (UTI)":"Drink lots of water. See a doctor if you have fever or back pain.",
+  "Vaginal Infection":"Cansoft-CL is not a UTI medicine.",
+  "Emergency / Special":"Trouble breathing, swelling of the face or throat, or heavy bleeding: call 911 first.",
+  "Skin & First Aid":"Clean the wound with water first.",
+  "Eye & Ear Drops":"Don't let the dropper tip touch the eye or ear. Many drops must be thrown out about 4 weeks after opening; check the label. See a doctor for eye pain, vision changes or an injury.",
+  "Regular Meds & Supplements":"Fibator-EZ and Roseday are both statins. Don't take them together."
+};
+const WORDS = {
+  "Fever & Pain":["pain","ache","fever","temperature","headache","head ache","body ache","bodyache","migraine","toothache","tooth"],
+  "Muscle Pain & Spasm":["muscle","sprain","spasm","back pain","backache","neck","shoulder","pulled","stiff","knee"],
+  "Cold, Cough & Allergy":["cold","cough","sneez","runny","blocked nose","stuffy","congest","allerg","itch","rash","hives","wheez","breath","asthma","sinus","flu"],
+  "Sore Throat":["throat","tonsil"],
+  "Antibiotics (Respiratory/General)":["infection","chest infection","bronchitis","antibiotic"],
+  "Acidity & Gas":["acid","heartburn","gas","bloat","burp","indigestion","reflux"],
+  "Nausea & Vomiting":["nausea","nauseous","vomit","throw up","throwing up","puke"],
+  "Diarrhea & Stomach Infection":["diarrh","loose motion","loose stool","food poisoning","dehydrat","stomach infection","stomach bug"],
+  "Stomach Cramps & Constipation":["stomach","stomach pain","stomach ache","stomachache","abdom","tummy","cramp","constipat"],
+  "Urinary Infection (UTI)":["uti","urin","bladder","peeing","burning pee"],
+  "Vaginal Infection":["vagina","yeast","discharge"],
+  "Emergency / Special":["insect","bite","sting","swelling","severe allerg","bleeding"],
+  "Skin & First Aid":["cut","wound","scrape","graze"],
+  "Eye & Ear Drops":["eye","eyes","red eye","pink eye","conjunctivitis","dry eye","watery eye","itchy eye","stye","ear","ears","earache","ear ache","ear pain","ear infection","eye drop","ear drop"],
+  "Regular Meds & Supplements":["cholesterol","vitamin"]
+};
+const QUICK = ["Fever","Headache","Cold","Cough","Sore throat","Acidity","Stomach ache","Loose motion","Vomiting","Body ache","Allergy","Eyes","UTI"];
+
+/* ---------------- State ---------------- */
+let meds = [];
+let view = "find";
+let allFilter = "All";
+let groupBy = "cat";
+function locations(){ return [...new Set(meds.map(m=>(m.location||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+let editing = null; // {…, location}
+let pin = "";
+let entry = "";
+const PIN_KEY = "medcab-pin";
+function storedPin(){ try{ return localStorage.getItem(PIN_KEY)||""; }catch(e){ return ""; } }
+function storePin(p){ try{ p ? localStorage.setItem(PIN_KEY,p) : localStorage.removeItem(PIN_KEY); }catch(e){} }
+const $ = s => document.querySelector(s);
+const IN_GAS = !!(window.google && google.script && google.script.run);
+const USE_API = !IN_GAS && /^https:\/\/script\.google\.com\/.+\/exec/.test(API_URL);
+const PREVIEW = !IN_GAS && !USE_API;
+
+/* ---------------- Server calls (with preview fallback) ---------------- */
+function call(fn, arg){
+  if (PREVIEW){
+    return new Promise((res,rej)=>{
+      if (pin!=="1234") return setTimeout(()=>rej(new Error("BADPIN")),150);
+      window.PREVIEW_DATA = window.PREVIEW_DATA || [];
+      if (fn==="saveMed"){
+        if (!arg.id){ arg.id="P"+Date.now(); window.PREVIEW_DATA.push(arg); }
+        else { const i=window.PREVIEW_DATA.findIndex(m=>m.id===arg.id); window.PREVIEW_DATA[i]=arg; }
+      }
+      if (fn==="lookupMedPhoto"){ const n=Array.isArray(arg)?arg.length:1; return setTimeout(()=>res({found:true,matchedName:"Dolo 650",contains:"Paracetamol 650mg",usedFor:"Fever and mild pain",category:"Fever & Pain",caution:"Contains paracetamol",expiry:n>1?"2028-03":""}),400); }
+      if (fn==="lookupMed"){ return setTimeout(()=>res(/pan/i.test(arg)?{found:true,matchedName:"Pan 40",contains:"Pantoprazole 40mg",usedFor:"Acidity, heartburn, stomach ulcers",category:"Acidity & Gas",caution:"Take before breakfast"}:{found:false}),300); }
+      if (fn==="deleteMed"){ window.PREVIEW_DATA = window.PREVIEW_DATA.filter(m=>m.id!==arg); }
+      setTimeout(()=>res(JSON.parse(JSON.stringify(window.PREVIEW_DATA))),120);
+    });
+  }
+  if (USE_API){
+    // Plain-text POST with no cookies: works no matter how many Google accounts are signed in.
+    return fetch(API_URL,{method:"POST",body:JSON.stringify({action:fn,pin,arg}),redirect:"follow",credentials:"omit"})
+      .then(r=>{ if(!r.ok) throw new Error("NET "+r.status); return r.json(); })
+      .then(j=>{ if(!j.ok) throw new Error(j.error||"FAILED"); return j.data; });
+  }
+  return new Promise((res,rej)=>{
+    const r = google.script.run.withSuccessHandler(res).withFailureHandler(rej);
+    arg===undefined ? r[fn](pin) : r[fn](pin, arg);
+  });
+}
+
+/* ---------------- Helpers ---------------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function hasQty(m){ return m.qty!=="" && m.qty!==null && m.qty!==undefined && !isNaN(m.qty); }
+function status(m){
+  if (hasQty(m) && Number(m.qty)===0) return {key:"gone",label:"Used up",cls:"b-gone",rank:3};
+  if (!m.expiry) return {key:"noexp",label:"Add expiry",cls:"b-info",rank:1};
+  const [y,mo]=m.expiry.split("-").map(Number);
+  const end=new Date(y,mo,0,23,59,59); // last day of expiry month
+  const now=new Date();
+  if (end<now) return {key:"expired",label:"Expired",cls:"b-bad",rank:2};
+  if ((end-now)/864e5<=183) return {key:"soon",label:"Expires soon",cls:"b-soon",rank:0};
+  return {key:"ok",label:"OK",cls:"b-ok",rank:0};
+}
+const usable = m => ["ok","soon","noexp"].includes(status(m).key);
+function fmtExp(e){
+  if(!e) return "No expiry date";
+  const [y,m]=e.split("-").map(Number);
+  return "Exp "+new Date(y,m-1,1).toLocaleString("en-US",{month:"short",year:"numeric"});
+}
+function foil(m){
+  if(!hasQty(m)) return `<span class="strip">Qty not set</span>`;
+  const q=Number(m.qty), shown=Math.min(q,10);
+  let dots=""; for(let i=0;i<10;i++) dots+=`<i class="${i<shown?"full":""}"></i>`;
+  return `<span class="strip"><span class="foil ${q===0?"none":""}" aria-hidden="true">${dots}</span>${q} left</span>`;
+}
+function card(m){
+  const s=status(m);
+  return `<button class="med ${usable(m)?"":"dim"}" data-id="${esc(m.id)}">
+    <div class="mrow"><div><div class="mname">${esc(m.name)}</div>${m.contains?`<div class="mcontains">${esc(m.contains)}</div>`:""}</div>
+    <span class="badge ${s.cls}">${s.label}</span></div>
+    ${m.usedFor?`<div class="muse">${esc(m.usedFor)}</div>`:""}
+    ${m.notes?`<div class="mnote">${esc(m.notes)}</div>`:""}
+    ${m.location?`<span class="loc">In: ${esc(m.location)}</span>`:""}
+    <div class="mfoot">${foil(m)}<span class="exp">${fmtExp(m.expiry)}</span></div>
+  </button>`;
+}
+function toast(t,ms=1800){ const el=$("#toast"); el.textContent=t; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),ms); }
+
+/* ---------------- Symptom matching ---------------- */
+function matchCategories(q){
+  const text=q.toLowerCase();
+  const hits=[];
+  for(const [cat,words] of Object.entries(WORDS)){
+    for(const w of words){
+      const re=new RegExp("\\b"+w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");
+      if(re.test(text)) hits.push({w,cat});
+    }
+  }
+  // drop a word if a longer matched word contains it ("ache" inside "stomach ache")
+  const kept=hits.filter(h=>!hits.some(o=>o.w!==h.w && o.w.length>h.w.length && o.w.includes(h.w)));
+  return [...new Set(kept.map(h=>h.cat))];
+}
+function sortMeds(list){ return list.slice().sort((a,b)=>status(a).rank-status(b).rank || a.name.localeCompare(b.name)); }
+
+/* ---------------- Render ---------------- */
+function renderChips(){
+  const q=$("#q").value.trim().toLowerCase();
+  $("#chips").innerHTML=QUICK.map(c=>`<button class="chip" aria-pressed="${q===c.toLowerCase()}">${c}</button>`).join("");
+}
+function renderFind(){
+  const q=$("#q").value.trim();
+  $("#clearQ").hidden=!q;
+  renderChips();
+  const out=$("#results");
+  if(!q){ out.innerHTML=`<p class="empty">Type a symptom (fever), a medicine name (Dolo), an ingredient (paracetamol) or a bag name, or tap a button above. Always check with Mom before taking anything.</p>`; return; }
+  let html="";
+  const cats=matchCategories(q);
+  for(const cat of cats){
+    const list=sortMeds(meds.filter(m=>m.category===cat));
+    const n=list.filter(usable).length;
+    html+=`<div class="cat-head"><h2>${esc(cat)}</h2><div class="count">${n} usable ${n===1?"medicine":"medicines"}</div></div>`;
+    if(TIPS[cat]) html+=`<div class="tip">${esc(TIPS[cat])}</div>`;
+    const good=list.filter(usable), rest=list.filter(m=>!usable(m));
+    html+= good.length? good.map(card).join("") : `<p class="empty">Nothing usable in stock for this. Ask Mom what to do.</p>`;
+    if(rest.length) html+=`<div class="section-label">Used up or expired</div>`+rest.map(card).join("");
+  }
+  // direct name / ingredient matches
+  if(q.length>=2){
+    const lq=q.toLowerCase();
+    const escq=lq.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    // 2 letters: match the start of a word in the name only (e.g. "O2"); 3+: name, ingredients or use
+    const hit = m => lq.length===2
+      ? new RegExp("(^|[^a-z0-9])"+escq,"i").test(m.name)
+      : [m.name,m.contains,m.usedFor,m.location].join(" ").toLowerCase().includes(lq);
+    const direct=sortMeds(meds.filter(m=>!cats.includes(m.category) && hit(m)));
+    if(direct.length) html+=`<div class="cat-head"><h2>Medicines matching “${esc(q)}”</h2></div>`+direct.map(card).join("");
+  }
+  out.innerHTML = html || `<p class="empty">No match for “${esc(q)}”. Try a simpler word like fever, cough, acidity or loose motion.</p>`;
+}
+function renderAll(){
+  const filters=["All","Usable","Expires soon","Needs restock"];
+  $("#allFilter").innerHTML=filters.map(f=>`<button class="chip" aria-pressed="${f===allFilter}">${f}</button>`).join("");
+  let list=meds;
+  if(allFilter==="Usable") list=meds.filter(usable);
+  if(allFilter==="Expires soon") list=meds.filter(m=>status(m).key==="soon");
+  if(allFilter==="Needs restock") list=meds.filter(m=>["gone","expired"].includes(status(m).key));
+  document.querySelectorAll("#groupBy button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.g===groupBy));
+  const rowHtml=m=>{const s=status(m);const extra=groupBy==="cat"?(m.location?" · "+esc(m.location):""):" · "+esc(m.category);return `<button class="row" data-id="${esc(m.id)}"><span><span class="rn">${esc(m.name)}</span><br><span class="rs">${hasQty(m)?m.qty+" left":"Qty not set"} · ${fmtExp(m.expiry)}${extra}</span></span><span class="badge ${s.cls}">${s.label}</span></button>`};
+  const groups = groupBy==="cat"
+    ? CATEGORIES.map(cat=>[cat,list.filter(m=>(CATEGORIES.includes(m.category)?m.category:"Other")===cat)])
+    : [...locations().map(l=>[l,list.filter(m=>(m.location||"").trim()===l)]),["Not assigned to a bag",list.filter(m=>!(m.location||"").trim())]];
+  let html="";
+  for(const [title,g] of groups){
+    if(!g.length) continue;
+    html+=`<div class="group-title">${esc(title)} (${g.length})</div>`+sortMeds(g).map(rowHtml).join("");
+  }
+  $("#allList").innerHTML=html||`<p class="empty">Nothing here.</p>`;
+}
+function shopGroups(){
+  return [
+    ["Used up","gone"],["Expired – throw out and restock","expired"],["Expires in the next 6 months","soon"],["Check the strip and add the expiry date","noexp"]
+  ].map(([t,k])=>[t,meds.filter(m=>status(m).key===k).sort((a,b)=>a.name.localeCompare(b.name))]).filter(g=>g[1].length);
+}
+function renderShop(){
+  const groups=shopGroups();
+  const n=groups.reduce((a,g)=>a+g[1].length,0);
+  const c=$("#shopCount"); c.hidden=!n; c.textContent=n;
+  $("#shopList").innerHTML = groups.length? groups.map(([t,list])=>`<div class="group-title">${t} (${list.length})</div>`+list.map(m=>`<button class="row" data-id="${esc(m.id)}"><span><span class="rn">${esc(m.name)}</span><br><span class="rs">${esc(m.contains||m.category)}</span></span><span class="rs">${fmtExp(m.expiry)}</span></button>`).join("")).join("") : `<p class="empty">Nothing to buy. Everything is in stock and in date.</p>`;
+}
+function render(){
+  $("#loading").hidden=true;
+  ["find","all","shop"].forEach(v=>$("#view-"+v).hidden=v!==view);
+  document.querySelectorAll("nav.tabs button").forEach(b=>{ if(b.dataset.view===view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  renderShop();
+  if(view==="find") renderFind();
+  if(view==="all") renderAll();
+}
+
+/* ---------------- Load ---------------- */
+let loadedOnce=false;
+function isPinErr(e){ const m=String(e&&e.message||e); return m.includes("BADPIN"); }
+function handlePinErr(e){
+  storePin(""); pin="";
+  showPin("Wrong PIN. Try again.", true);
+}
+function load(quiet){
+  return call("getMeds").then(d=>{ meds=d; loadedOnce=true; $("#pinScreen").hidden=true; render(); })
+    .catch(e=>{
+      if(isPinErr(e)) return handlePinErr(e);
+      $("#loading").textContent="Couldn't load the list. Check your connection, then tap Refresh.";
+      toast("Couldn't load. Tap Refresh to try again.",3000);
+    });
+}
+
+/* ---------------- PIN screen ---------------- */
+function showPin(msg, isErr){
+  entry=""; drawDots();
+  const m=$("#pinMsg"); m.textContent=msg||"Enter the family PIN"; m.classList.toggle("err",!!isErr);
+  if(isErr){ const d=$("#pinDots"); d.classList.remove("shake"); void d.offsetWidth; d.classList.add("shake"); }
+  closeEditor(); $("#pinScreen").hidden=false;
+}
+function drawDots(){ document.querySelectorAll("#pinDots span").forEach((d,i)=>d.classList.toggle("on",i<entry.length)); }
+function pressKey(k){
+  if(k==="del"){ entry=entry.slice(0,-1); drawDots(); return; }
+  if(entry.length>=4) return;
+  entry+=k; drawDots();
+  if(entry.length===4){
+    pin=entry; $("#pinMsg").textContent="Checking…"; $("#pinMsg").classList.remove("err");
+    call("getMeds").then(d=>{
+      if($("#rememberPin").checked) storePin(pin);
+      meds=d; loadedOnce=true; $("#pinScreen").hidden=true; render();
+    }).catch(e=>{ if(isPinErr(e)) handlePinErr(e); else showPin("Couldn't connect. Check your internet and try again.", true); });
+  }
+}
+
+/* ---------------- Editor ---------------- */
+function openEditor(m){
+  editing = m ? {...m} : {id:"",name:"",category:"Other",contains:"",usedFor:"",qty:"",expiry:"",notes:"",location:""};
+  $("#edTitle").textContent = m ? "Edit medicine" : "Add medicine";
+  $("#f-cat").innerHTML = CATEGORIES.map(c=>`<option ${c===editing.category?"selected":""}>${esc(c)}</option>`).join("");
+  $("#f-name").value=editing.name; $("#f-qty").value=editing.qty; $("#f-exp").value=editing.expiry;
+  $("#f-contains").value=editing.contains; $("#f-loc").value=editing.location||"";
+  $("#locChips").innerHTML=locations().map(l=>`<button type="button" class="chip">${esc(l)}</button>`).join(""); $("#f-use").value=editing.usedFor; $("#f-notes").value=editing.notes;
+  $("#edDelete").hidden=!m; aiMsg(""); resetPhotos(); busy(false);
+  $("#overlay").classList.add("open");
+  setTimeout(()=>(m?$("#f-qty"):$("#f-name")).focus(),60);
+}
+function closeEditor(){ $("#overlay").classList.remove("open"); editing=null; }
+function stepQty(d){ const v=parseInt($("#f-qty").value,10); $("#f-qty").value=Math.max(0,(isNaN(v)?0:v)+d); }
+function saveEditor(){
+  const name=$("#f-name").value.trim();
+  if(!name){ toast("Add a name first."); $("#f-name").focus(); return; }
+  const exp=$("#f-exp").value.trim();
+  if(exp && !/^\d{4}-\d{2}$/.test(exp)){ toast("Write the expiry as YYYY-MM, e.g. 2027-06.",3000); return; }
+  const q=$("#f-qty").value.trim();
+  const med={...editing,name,category:$("#f-cat").value,contains:$("#f-contains").value.trim(),usedFor:$("#f-use").value.trim(),
+    notes:$("#f-notes").value.trim(),location:$("#f-loc").value.trim(),expiry:exp,qty:q===""?"":Math.max(0,parseInt(q,10)||0)};
+  const btn=$("#edSave"); btn.disabled=true; btn.textContent="Saving…";
+  call("saveMed",med).then(d=>{ meds=d; closeEditor(); render(); toast("Saved"); })
+    .catch(e=>isPinErr(e)?handlePinErr(e):toast("Couldn't save. Check your connection and try again.",3000))
+    .finally(()=>{ btn.disabled=false; btn.textContent="Save changes"; });
+}
+function deleteEditor(){
+  if(!editing||!confirm(`Delete ${editing.name} from the list? To keep it for restocking, set it to "Used up" instead.`)) return;
+  call("deleteMed",editing.id).then(d=>{ meds=d; closeEditor(); render(); toast("Deleted"); })
+    .catch(e=>isPinErr(e)?handlePinErr(e):toast("Couldn't delete. Try again.",3000));
+}
+
+/* ---------------- AI lookup ---------------- */
+let photos=[];     // base64 JPEGs in this scan (max 3)
+let readCount=0;   // how many of them Gemini has already read
+const MAX_PHOTOS=3;
+const COLLECT_KEY="medcab-collect";
+function collectMode(){ return $("#collectMode").checked; }
+function resetPhotos(){ photos=[]; readCount=0; drawPhotos(); }
+function drawPhotos(){
+  const unread=photos.length>readCount;
+  const canRemove=unread;   // photos not yet sent can be removed
+  $("#photoTray").innerHTML = photos.length
+    ? photos.map((d,i)=>`<span class="thumb"><img alt="Photo ${i+1}" src="data:image/jpeg;base64,${d}">${canRemove&&i>=readCount?`<button type="button" data-rm="${i}" aria-label="Remove photo ${i+1}">×</button>`:""}</span>`).join("")
+      + `<span>${unread ? photos.length+" photo"+(photos.length>1?"s":"")+" ready" : photos.length+" photo"+(photos.length>1?"s":"")+" read together"}</span>`
+    : "";
+  const more=$("#moreBtn");
+  more.hidden = !photos.length || photos.length>=MAX_PHOTOS;
+  more.textContent = photos.length===1 ? "Add 2nd photo" : "Add 3rd photo";
+  const rd=$("#readBtn");
+  rd.hidden = !unread;
+  rd.textContent = photos.length>1 ? `Read ${photos.length} photos` : "Read photo";
+  $("#camBtn").textContent = photos.length ? "Start over" : "Scan strip";
+}
+const AUTO_NOTE="Auto-filled – ask Mom to check.";
+function aiMsg(t,err){ const m=$("#aiMsg"); m.textContent=t; m.classList.toggle("err",!!err); }
+function flash(el){ el.classList.remove("filled"); void el.offsetWidth; el.classList.add("filled"); }
+function applyAI(r, typedName, fromPhoto){
+  if(!r||!r.found){
+    aiMsg(fromPhoto ? "Couldn't read this photo. Try again in good light, close up, with the text in focus."
+                    : "Couldn't find this one. Check the spelling, or fill it in yourself.", true);
+    return;
+  }
+  const nameEl=$("#f-name");
+  if(!nameEl.value.trim() && r.matchedName){ nameEl.value=r.matchedName; flash(nameEl); }
+  // Ingredients and category are facts, so replace them. Never overwrite Mom's instructions.
+  if(r.contains){ $("#f-contains").value=r.contains; flash($("#f-contains")); }
+  if(CATEGORIES.includes(r.category)){ $("#f-cat").value=r.category; flash($("#f-cat")); }
+  if(!$("#f-use").value.trim() && r.usedFor){ $("#f-use").value=r.usedFor; flash($("#f-use")); }
+  if(r.expiry){ $("#f-exp").value=r.expiry; flash($("#f-exp")); }
+  const notes=$("#f-notes").value.trim();
+  if(!notes.includes(AUTO_NOTE)){
+    $("#f-notes").value=[notes, r.caution?r.caution.replace(/\.?$/,"."):"", AUTO_NOTE].filter(Boolean).join(" ");
+    flash($("#f-notes"));
+  }
+  let msg="Filled in. Please check before saving.";
+  if(r.matchedName && typedName && r.matchedName.toLowerCase()!==typedName.toLowerCase()) msg+=` Matched “${r.matchedName}”.`;
+  if(fromPhoto) msg+= r.expiry ? " Expiry read from the photo." : " Couldn't read the expiry, so add it yourself.";
+  aiMsg(msg);
+}
+function aiError(e){
+  const m=String(e&&e.message||e);
+  if(isPinErr(e)) return handlePinErr(e);
+  if(m.includes("NOKEY")) aiMsg("AI lookup isn't set up yet: add GEMINI_API_KEY in Script Properties.",true);
+  else if(m.includes("BADKEY")) aiMsg("The Gemini API key isn't working. Check it in Script Properties.",true);
+  else if(m.includes("BUSY")) aiMsg("The free AI limit was reached. Wait a minute and try again. If it keeps happening, the daily limit is used up; try tomorrow.",true);
+  else if(m.includes("MODEL")) aiMsg("The AI model name needs updating (GEMINI_MODEL in Script Properties).",true);
+  else if(m.includes("BADPHOTO")) aiMsg("That photo couldn't be used. Try taking it again.",true);
+  else {
+    const detail=(m.match(/AIFAIL\s*(.*)/)||[])[1]||m;
+    aiMsg("Lookup didn't work. Wait a few seconds and try again. (Details: "+detail.replace(/^Error:\s*/,"").slice(0,160)+")",true);
+  }
+}
+function busy(on, which){
+  const a=$("#aiBtn"), c=$("#camBtn"), mo=$("#moreBtn"), rd=$("#readBtn");
+  a.disabled=c.disabled=mo.disabled=rd.disabled=on;
+  a.textContent = on&&which==="name" ? "Looking up…" : "Fill in for me";
+  c.textContent = photos.length ? "Start over" : "Scan strip";
+  if(on&&which==="photo") rd.textContent="Reading…"; else if(!on) drawPhotos();
+}
+function aiLookup(){
+  const name=$("#f-name").value.trim();
+  if(!name){ aiMsg("Type the medicine name first, or use Scan strip.",true); $("#f-name").focus(); return; }
+  busy(true,"name"); aiMsg("");
+  call("lookupMed",name).then(r=>applyAI(r,name,false)).catch(aiError).finally(()=>busy(false));
+}
+/* Shrink the photo on the phone before sending, so it uploads fast. */
+function shrinkPhoto(file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onerror=()=>rej(new Error("BADPHOTO"));
+    fr.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>rej(new Error("BADPHOTO"));
+      img.onload=()=>{
+        const max=1400, k=Math.min(1, max/Math.max(img.width,img.height));
+        const c=document.createElement("canvas"); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL("image/jpeg",0.8).split(",")[1]);
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+let addingPhoto=false;
+function photoLookup(fileList){
+  let files=[...(fileList||[])].filter(f=>/^image\//.test(f.type)||!f.type);
+  if(!files.length) return;
+  if(!addingPhoto){ photos=[]; readCount=0; }
+  addingPhoto=false;
+  const room=MAX_PHOTOS-photos.length;
+  const skipped=Math.max(0,files.length-room);
+  files=files.slice(0,room);
+  const skipNote = skipped ? " (Only "+MAX_PHOTOS+" photos can be used, so the extra ones were skipped.)" : "";
+  busy(true,"prep"); aiMsg("");
+  Promise.all(files.map(shrinkPhoto))
+    .then(list=>{
+      photos.push(...list);
+      if(collectMode() && photos.length<MAX_PHOTOS){
+        busy(false);
+        aiMsg(`Photo${photos.length>1?"s":""} added. Add more, or tap “${$("#readBtn").textContent}” when ready.`+skipNote);
+        return;
+      }
+      busy(false);
+      return readPhotos(skipNote);
+    })
+    .catch(e=>{ busy(false); aiError(e); })
+    .finally(()=>{ $("#camInput").value=""; });
+}
+function readPhotos(extra){
+  if(!photos.length) return;
+  const typed=$("#f-name").value.trim();
+  const sending=photos.length;
+  busy(true,"photo"); aiMsg("");
+  return call("lookupMedPhoto",photos.slice())
+    .then(r=>{
+      readCount=sending;
+      applyAI(r,typed,true);
+      if(r&&r.found&&!r.expiry&&photos.length<MAX_PHOTOS){ drawPhotos(); aiMsg("Filled in. Couldn't read the expiry: tap “"+$("#moreBtn").textContent+"” and photograph where it's printed."); }
+      if(extra) aiMsg($("#aiMsg").textContent+extra);
+    })
+    .catch(aiError)
+    .finally(()=>busy(false));
+}
+
+/* ---------------- Share shopping list ---------------- */
+function shareList(){
+  const groups=shopGroups();
+  if(!groups.length){ toast("Nothing to buy right now."); return; }
+  const text="Medicines to restock:\n\n"+groups.map(([t,l])=>t+":\n"+l.map(m=>"• "+m.name+(m.contains?" ("+m.contains+")":"")).join("\n")).join("\n\n");
+  if(navigator.share){ navigator.share({title:"Medicines to restock",text}).catch(()=>{}); return; }
+  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>toast("List copied. Paste it into WhatsApp or email.",2600)).catch(()=>fallbackCopy(text)); }
+  else fallbackCopy(text);
+}
+function fallbackCopy(text){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy");toast("List copied.");}catch(e){} t.remove(); }
+
+/* ---------------- Events ---------------- */
+$("#q").addEventListener("input",renderFind);
+$("#clearQ").addEventListener("click",()=>{ $("#q").value=""; renderFind(); $("#q").focus(); });
+$("#chips").addEventListener("click",e=>{ const b=e.target.closest(".chip"); if(!b) return; $("#q").value=b.textContent; renderFind(); });
+$("#allFilter").addEventListener("click",e=>{ const b=e.target.closest(".chip"); if(!b) return; allFilter=b.textContent; renderAll(); });
+document.querySelector("nav.tabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; view=b.dataset.view; render(); window.scrollTo(0,0); });
+document.body.addEventListener("click",e=>{ const b=e.target.closest("[data-id]"); if(!b) return; const m=meds.find(x=>x.id===b.dataset.id); if(m) openEditor(m); });
+$("#groupBy").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; groupBy=b.dataset.g; renderAll(); });
+$("#locChips").addEventListener("click",e=>{ const b=e.target.closest(".chip"); if(!b) return; $("#f-loc").value=b.textContent; });
+$("#aiBtn").addEventListener("click",aiLookup);
+$("#camBtn").addEventListener("click",()=>{ addingPhoto=false; $("#camInput").click(); });
+$("#moreBtn").addEventListener("click",()=>{ addingPhoto=true; $("#camInput").click(); });
+$("#readBtn").addEventListener("click",()=>readPhotos(""));
+$("#photoTray").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(!b) return; photos.splice(Number(b.dataset.rm),1); if(readCount>photos.length) readCount=photos.length; drawPhotos(); aiMsg(photos.length?"Photo removed.":""); });
+try{ $("#collectMode").checked = localStorage.getItem(COLLECT_KEY)==="1"; }catch(e){}
+$("#collectMode").addEventListener("change",e=>{ try{ localStorage.setItem(COLLECT_KEY,e.target.checked?"1":"0"); }catch(err){} });
+$("#camInput").addEventListener("change",e=>photoLookup(e.target.files));
+$("#addBtn").addEventListener("click",()=>openEditor(null));
+$("#shareBtn").addEventListener("click",shareList);
+$("#refresh").addEventListener("click",()=>{ toast("Refreshing…",900); load(); });
+$("#qMinus").addEventListener("click",()=>stepQty(-1));
+$("#qPlus").addEventListener("click",()=>stepQty(1));
+$("#usedUp").addEventListener("click",()=>{ $("#f-qty").value=0; });
+$("#edCancel").addEventListener("click",closeEditor);
+$("#edSave").addEventListener("click",saveEditor);
+$("#edDelete").addEventListener("click",deleteEditor);
+$("#overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") closeEditor(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && editing) closeEditor(); });
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && loadedOnce && pin && !editing) load(true); });
+
+$("#keys").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; pressKey(b.hasAttribute("data-del")?"del":b.textContent); });
+document.addEventListener("keydown",e=>{ if($("#pinScreen").hidden) return; if(/^[0-9]$/.test(e.key)) pressKey(e.key); if(e.key==="Backspace") pressKey("del"); });
+$("#lockBtn").addEventListener("click",()=>{ storePin(""); pin=""; meds=[]; loadedOnce=false; $("#loading").hidden=false; ["find","all","shop"].forEach(v=>$("#view-"+v).hidden=true); showPin("Locked. Enter the PIN to open."); });
+
+if(PREVIEW && !window.PREVIEW_DATA){
+  // GitHub copy without the Apps Script link filled in yet
+  $("#loading").innerHTML="<b>Almost set up.</b><br>Open index.html and paste your Apps Script link (ending in /exec) into the API_URL line near the top.";
+} else {
+  pin=storedPin();
+  if(pin){ load(); } else { $("#loading").hidden=true; showPin(); }
+}
+</script>
+</body>
+</html>
